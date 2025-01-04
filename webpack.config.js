@@ -51,8 +51,12 @@ module.exports = (_, argv) => ({
       name: "host",
       filename: "remoteEntry.js",
       remotes: {
-        emailList: "emailList@http://localhost:8084/emailList.js",
-        selectedList: "selectedList@http://localhost:8085/selectedList.js"
+        emailList: argv.mode === "development"
+          ? "emailList@http://localhost:8084/emailList.js"
+          : "emailList@https://federated-email-list.vercel.app/emailList.js",
+        selectedList: argv.mode === "development"
+          ? "selectedList@http://localhost:8085/selectedList.js"
+          : "selectedList@https://federated-selected-list.vercel.app/selectedList.js",
       },
       exposes: {},
       shared: require("./package.json").dependencies,
