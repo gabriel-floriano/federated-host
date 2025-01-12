@@ -3,7 +3,6 @@ const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPl
 const { VueLoaderPlugin } = require("vue-loader");
 const Dotenv = require('dotenv-webpack');
 const CompressionPlugin = require('compression-webpack-plugin');
-const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
 
 module.exports = (_, argv) => ({
   output: {
@@ -83,7 +82,6 @@ module.exports = (_, argv) => ({
       exposes: {},
       shared: {
         vue: { singleton: true, eager: false },
-        "vue-router": { singleton: true, eager: false },
       },
     }),
     new HtmlWebPackPlugin({
@@ -93,9 +91,6 @@ module.exports = (_, argv) => ({
     new CompressionPlugin({
       algorithm: 'gzip',
       test: /\.(js|css|html|svg)$/,
-    }),
-    new BundleAnalyzerPlugin({
-      analyzerMode: argv.mode === "development" ? "server" : "disabled",
     }),
   ],
 });
