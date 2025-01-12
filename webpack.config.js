@@ -2,11 +2,16 @@ const HtmlWebPackPlugin = require("html-webpack-plugin");
 const ModuleFederationPlugin = require("webpack/lib/container/ModuleFederationPlugin");
 const { VueLoaderPlugin } = require("vue-loader");
 const Dotenv = require('dotenv-webpack');
+const CompressionPlugin = require('compression-webpack-plugin');
+const { BundleAnalyzerPlugin } = require('webpack-bundle-analyzer');
+
 module.exports = (_, argv) => ({
   output: {
     publicPath: argv.mode === "development"
       ? "http://localhost:8083/"
       : "https://federated-host.vercel.app/",
+    filename: '[name].[contenthash].js',
+    chunkFilename: '[name].[contenthash].js',
   },
 
   resolve: {
@@ -16,6 +21,8 @@ module.exports = (_, argv) => ({
   devServer: {
     port: 8083,
     historyApiFallback: true,
+    hot: true, // Enable Hot Module Replacement
+    open: true,
   },
 
   module: {
@@ -45,6 +52,21 @@ module.exports = (_, argv) => ({
     ],
   },
 
+  optimization: {
+    splitChunks: {
+      chunks: 'all',
+      automaticNameDelimiter: '_',
+      minSize: 30000,
+      maxSize: 500000,
+    },
+  },
+
+  performance: {
+    hints: 'warning',
+    maxAssetSize: 500000, // 500 KB
+    maxEntrypointSize: 1000000, // 1 MB
+  },
+
   plugins: [
     new VueLoaderPlugin(),
     new ModuleFederationPlugin({
@@ -59,11 +81,21 @@ module.exports = (_, argv) => ({
           : "selectedList@https://federated-selected-list.vercel.app/selectedList.js",
       },
       exposes: {},
-      shared: require("./package.json").dependencies,
+      shared: {
+        vue: { singleton: true, eager: false },
+        "vue-router": { singleton: true, eager: false },
+      },
     }),
     new HtmlWebPackPlugin({
       template: "./src/index.html",
     }),
-    new Dotenv()
+    new Dotenv(),
+    new CompressionPlugin({
+      algorithm: 'gzip',
+      test: /\.(js|css|html|svg)$/,
+    }),
+    new BundleAnalyzerPlugin({
+      analyzerMode: argv.mode === "development" ? "server" : "disabled",
+    }),
   ],
 });
